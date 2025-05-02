@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appuntamento - MAINETTI SOLUTION</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#007bff">
+  <style>
+    body { font-family: sans-serif; padding: 1rem; max-width: 500px; margin: auto; }
+    label { display: block; margin-top: 1rem; font-weight: bold; }
+    input, textarea, button, select { width: 100%; padding: 0.5rem; margin-top: 0.25rem; border-radius: 6px; border: 1px solid #ccc; }
+    button { margin-top: 1rem; background-color: #007bff; color: white; border: none; cursor: pointer; }
+    button:hover { background-color: #0056b3; }
+    .output { margin-top: 2rem; white-space: pre-wrap; background: #f9f9f9; padding: 1rem; border-radius: 6px; border: 1px solid #ddd; }
+    #hiddenCopy { position: absolute; left: -9999px; top: -9999px; }
+  </style>
+</head>
+<body>
+  <h1>Conferma Appuntamento</h1>
+
+  <label for="data">Data:</label>
+  <input type="date" id="data">
+
+  <label for="ora">Ora:</label>
+  <input type="time" id="ora">
+
+  <label for="durata">Durata intervento (minuti):</label>
+  <input type="number" id="durata" min="10" step="5" placeholder="Es. 30">
+
+  <label for="motivo">Motivo:</label>
+  <textarea id="motivo" rows="3"></textarea>
+
+  <button onclick="generaMessaggio()">Genera Messaggio</button>
+
+  <div id="risultato" class="output" style="display:none;"></div>
+  <textarea id="hiddenCopy"></textarea>
+  <button id="copiaBtn" style="display:none;" onclick="copiaMessaggio()">Copia Messaggio</button>
+  <button id="calendarBtn" style="display:none;" onclick="aggiungiAGoogleCalendar()">Aggiungi a Google Calendar</button>
+
+  <script>
+    // PWA: registra il service worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(reg => console.log('Service worker registrato:', reg))
+          .catch(err => console.error('Errore nel service worker:', err));
+      });
+    }
+
+    function formattaData(dataString) {
+      const giorniSettimana = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
+      const mesi = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+
+      const data = new Date(dataString);
+      const giornoSettimana = giorniSettimana[data.getDay()];
+      const giorno = data.getDate();
+      const mese = mesi[data.getMonth()];
+      const anno = data.getFullYear();
+
+      return `${giornoSettimana} ${giorno} ${mese} ${anno}`;
+    }
+
+    let ultimoDataISO = "";
+    let ultimoOra = "";
+    let ultimoMotivo = "";
+    let ultimaDurata = 30;
+
+    function generaMessaggio() {
+      const dataInput = document.getElementById('data').value;
+      const ora = document.getElementById('ora').value;
+      const motivo = document.getElementById('motivo').value;
+      const durata = parseInt(document.getElementById('durata').value);
+
+      if (!dataInput || !ora || !motivo || isNaN(durata)) {
+        alert("Per favore, compila tutti i campi, inclusa la durata.");
+        return;
+      }
+
+      const dataFormattata = formattaData(dataInput);
+
+      const messaggio = `Buongiorno, le confermiamo l'appuntamento per *${dataFormattata}* alle *${ora}* per il seguente motivo: *${motivo}*.
+La durata stimata dell'intervento è di circa *${durata} minuti*.
+\nCordiali saluti,\n\nMAINETTI SOLUTION.`;
+
+      document.getElementById('risultato').textContent = messaggio;
+      document.getElementById('risultato').style.display = 'block';
+      document.getElementById('hiddenCopy').value = messaggio;
+      document.getElementById('copiaBtn').style.display = 'inline-block';
+      document.getElementById('calendarBtn').style.display = 'inline-block';
+
+      ultimoDataISO = dataInput;
+      ultimoOra = ora;
+      ultimoMotivo = motivo;
+      ultimaDurata = durata;
+    }
+
+    function copiaMessaggio() {
+      const hiddenField = document.getElementById('hiddenCopy');
+      hiddenField.select();
+      hiddenField.setSelectionRange(0, 99999); // per iOS
+
+      try {
+        document.execCommand('copy');
+        alert('Messaggio copiato negli appunti!');
+      } catch (err) {
+        alert('Errore nella copia del messaggio.');
+      }
+    }
+
+    function aggiungiAGoogleCalendar() {
+      if (!ultimoDataISO || !ultimoOra || !ultimoMotivo || !ultimaDurata) return;
+
+      const data = new Date(`${ultimoDataISO}T${ultimoOra}`);
+      const inizio = data.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+      const fineData = new Date(data.getTime() + ultimaDurata * 60000);
+      const fine = fineData.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+      const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Appuntamento - MAINETTI SOLUTION")}&dates=${inizio}/${fine}&details=${encodeURIComponent("Motivo: " + ultimoMotivo + " | Durata stimata: " + ultimaDurata + " minuti")}&sf=true&output=xml`;
+      window.open(url, '_blank');
+    }
+  </script>
+</body>
+</html>
