@@ -39,7 +39,6 @@
   <button id="calendarBtn" style="display:none;" onclick="aggiungiAGoogleCalendar()">Aggiungi a Google Calendar</button>
 
   <script>
-    // PWA: registra il service worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('service-worker.js')
@@ -98,7 +97,7 @@ La durata stimata dell'intervento è di circa *${durata} minuti*.
     function copiaMessaggio() {
       const hiddenField = document.getElementById('hiddenCopy');
       hiddenField.select();
-      hiddenField.setSelectionRange(0, 99999); // per iOS
+      hiddenField.setSelectionRange(0, 99999);
 
       try {
         document.execCommand('copy');
@@ -116,7 +115,11 @@ La durata stimata dell'intervento è di circa *${durata} minuti*.
       const fineData = new Date(data.getTime() + ultimaDurata * 60000);
       const fine = fineData.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
 
-      const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Appuntamento - MAINETTI SOLUTION")}&dates=${inizio}/${fine}&details=${encodeURIComponent("Motivo: " + ultimoMotivo + " | Durata stimata: " + ultimaDurata + " minuti")}&sf=true&output=xml`;
+      const dettagli = `Motivo: ${ultimoMotivo}%0A` +
+                       `Durata stimata: ${ultimaDurata} minuti%0A%0A` +
+                       `📌 Riceverai un promemoria 1 ora prima dell'appuntamento.`;
+
+      const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Appuntamento - MAINETTI SOLUTION")}&dates=${inizio}/${fine}&details=${dettagli}&sf=true&output=xml`;
       window.open(url, '_blank');
     }
   </script>
