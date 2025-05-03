@@ -78,9 +78,9 @@
 
       const dataFormattata = formattaData(dataInput);
 
-      const messaggio = `Buongiorno, le confermiamo l'appuntamento per *${dataFormattata}* alle *${ora}* per il seguente motivo: *${motivo}*.
+      const messaggio = `Buongiorno,\nle confermiamo l'appuntamento per *${dataFormattata}* alle *${ora}* per il seguente motivo: *${motivo}*.
 La durata stimata dell'intervento è di circa *${durata} minuti*.
-\nCordiali saluti,\n\nMAINETTI SOLUTION.`;
+\nCordiali saluti,\n\n*MAINETTI SOLUTION*\n_La soluzione giusta!_`;
 
       document.getElementById('risultato').textContent = messaggio;
       document.getElementById('risultato').style.display = 'block';
